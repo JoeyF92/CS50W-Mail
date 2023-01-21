@@ -1,3 +1,28 @@
-textarea {
-    min-height: 400px;
+#emails-view .read {
+  background-color: rgb(224, 224, 224);
 }
+#emails-view .container-div {
+  border: 1px solid black;
+  border-top: 0;
+  display: flex;
+  padding: 0.5rem 0 0.5rem 0;
+}
+#emails-view .container-div .sender-div {
+  font-weight: bold;
+  width: 20%;
+}
+#emails-view .container-div .subject-div {
+  width: 50%;
+}
+#emails-view .container-div .timestamp-div {
+  width: 20%;
+  text-align: right;
+  align-self: flex-end;
+}
+#emails-view .container-div:first-of-type {
+  border-top: 1px solid black;
+}
+
+#emails-view :nth-of-type {
+  border-top: 0;
+}/*# sourceMappingURL=styles.css.map */
