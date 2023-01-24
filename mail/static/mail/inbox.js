@@ -4,17 +4,17 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#inbox').addEventListener('click', () => loadMailbox('inbox'));
   document.querySelector('#sent').addEventListener('click', () => loadMailbox('sent'));
   document.querySelector('#archived').addEventListener('click', () => loadMailbox('archive'));
-  document.querySelector('#compose').addEventListener('click', compose_email);
+  document.querySelector('#compose').addEventListener('click', composeEmail);
   
   //listeners for replying and archiving emails
-  document.querySelector('#reply').addEventListener('click', e => compose_email(e));
+  document.querySelector('#reply').addEventListener('click', e => composeEmail(e));
   document.querySelector('#archive').addEventListener('click', e => archive_email(e));
 
   // By default, load the inbox
   loadMailbox('inbox');
 
   // listen for a new email submission
-  newEmail = document.querySelector('#compose-form').addEventListener('submit', e => send_email(e));
+  document.querySelector('#compose-form').addEventListener('submit', e => sendEmail(e));
     
 
 });
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-function compose_email(e) {
+function composeEmail(e) {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
@@ -35,15 +35,16 @@ function compose_email(e) {
   //if it's a reply
   if (tar.getAttribute('data-sender')){
     document.querySelector('#compose-recipients').value = tar.getAttribute('data-recipients');
-    dataSubject = tar.getAttribute('data-subject');
-    if (tar.getAttribute('data-subject').startsWith('Re: ')){
+    let dataSubject = tar.getAttribute('data-subject');
+    if (tar.getAttribute('data-subject').startsWith('Re: '))
+    {
       document.querySelector('#compose-subject').value = tar.getAttribute('data-subject');
     }
     else{
       document.querySelector('#compose-subject').value = 'Re: ' + tar.getAttribute('data-subject');
     }
 
-    body = String.fromCharCode(13, 10) + 'On ' + tar.getAttribute('data-timestamp') + ', ' + tar.getAttribute('data-recipients') + ' wrote: ' + String.fromCharCode(13, 10) + '"' + tar.getAttribute('data-body') + '"'
+    let body = String.fromCharCode(13, 10) + 'On ' + tar.getAttribute('data-timestamp') + ', ' + tar.getAttribute('data-recipients') + ' wrote: ' + String.fromCharCode(13, 10) + '"' + tar.getAttribute('data-body') + '"'
     document.querySelector('#compose-body').value = body
   
   }
@@ -65,10 +66,10 @@ function loadMailbox(mailbox) {
   document.querySelector('#one-view').style.display = 'none';
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
-  inbox_render(mailbox)
+  inboxRender(mailbox)
 }
 
-function send_email(e){
+function sendEmail(e){
   // extract the forms elements from the event and do an api call with them
   form = e.target.elements;
   fetch('/emails', {
@@ -83,19 +84,24 @@ function send_email(e){
   .then(result => {
       // Print result
       console.log(result);
-      // load users inbox
-      loadMailbox('inbox')
+       //load sent inbox - with a slight delay, so api is updated first
+      setTimeout(function()
+      {
+        loadMailbox('sent')
+      }, 100);
+
+
   
   });
 
 };
 
 
-function inbox_render(mailbox){
+function inboxRender(mailbox){
   fetch('/emails/' + mailbox)
   .then(response => response.json())
   .then(emails => {
-      inbox = document.querySelector('#emails-view')
+      let inbox = document.querySelector('#emails-view')
       emails.forEach(x => {  
         //create divs to insert email info into
         const container = document.createElement('div');
@@ -112,9 +118,9 @@ function inbox_render(mailbox){
         if(x.read === false){
           container.classList = "container-div read";
         }
-        
+
         //add the email id to a data-something property on the container
-        container.setAttribute("data-id", x.id)
+        container.setAttribute("data-id", x.id);
 
         
         // if we're looking at sent mail 
@@ -151,7 +157,7 @@ function inbox_render(mailbox){
           e.target.style.cursor = "grab";
         });
         //listen for click so we can trigger function
-        container.addEventListener('click', e => access_email(e));
+        container.addEventListener('click', e => accessEmail(e));
         inbox.append(container);
        
       });
@@ -161,27 +167,28 @@ function inbox_render(mailbox){
   });
 }
 
-function access_email(e){
+function accessEmail(e){
   // make sure we don't use inner div info - use current target rather than target
   let tar = e.currentTarget
   // get the email info
-  emailId = tar.getAttribute('data-id')
+  let emailId = tar.getAttribute('data-id')
   //check if it's an email the user sent
-  isSent = tar.getAttribute('data-sent-email')
+  let isSent = tar.getAttribute('data-sent-email')
   //check if it's an archived email
-  isArchived = tar.getAttribute('data-archived')
+  let isArchived = tar.getAttribute('data-archived')
   //extract email from api with the id
   fetch('/emails/' + emailId)
   .then(response => response.json())
    .then(email => {
     // insert email data to the relevant html elements
-    emailSender = document.querySelector('#email-from').innerHTML = '<strong>From: </strong>' + email.sender;
-    emailRecipient = document.querySelector('#email-to').innerHTML = '<strong>To: </strong>' + email.recipients;
-    emailSubject = document.querySelector('#email-subject').innerHTML  = '<strong>Subject: </strong> ' + email.subject;
-    emailBody = document.querySelector('#email-body').innerHTML = email.body;
+    document.querySelector('#email-from').innerHTML = '<strong>From: </strong>' + email.sender;
+    document.querySelector('#email-to').innerHTML = '<strong>To: </strong>' + email.recipients;
+    document.querySelector('#email-subject').innerHTML  = '<strong>Subject: </strong> ' + email.subject;
+    document.querySelector('#email-time').innerHTML = '<strong>Timestamp: </strong>' + email.timestamp;
+    document.querySelector('#email-body').innerHTML = email.body;
 
     // add data to the reply button
-    reply = document.querySelector('#reply');
+    let reply = document.querySelector('#reply');
     reply.setAttribute("data-sender", email.recipients)
     reply.setAttribute("data-body", email.body)
     reply.setAttribute("data-recipients", email.sender)
@@ -193,7 +200,7 @@ function access_email(e){
 
     //if we're looking at a sent email:
     isSent = tar.getAttribute('data-sent-email');
-    archive = document.querySelector('#archive');
+    let archive = document.querySelector('#archive');
 
     if (isSent === 'true'){
       reply.setAttribute("data-recipients", email.recipients)
@@ -205,7 +212,7 @@ function access_email(e){
     else{
       //mark email as read:
       archive.style.display = 'block';
-      read_status(true, email.id)
+      readStatus(true, email.id)
       //add the email id to the archive button:
       archive.setAttribute("data-id", email.id)
 
@@ -221,7 +228,7 @@ function access_email(e){
 
 }
 
-function read_status(status, id){
+function readStatus(status, id){
   fetch('/emails/' + id, {
     method: 'PUT',
     body: JSON.stringify({
@@ -238,13 +245,18 @@ function archive_email(e)
   toArchive = (toArchive === 'Archive') ? true : false;
 
   //get the email reuqested's id from the event and do api call to update
-  id = tar.getAttribute('data-id')
+  let id = tar.getAttribute('data-id')
   fetch('/emails/' + id, {
     method: 'PUT',
     body: JSON.stringify({
         archived: toArchive
     })
   })
-  loadMailbox('inbox')
+  //load inbox again- with a slight delay, so api is updated first
+  setTimeout(function()
+  {
+    loadMailbox('inbox')
+  }, 100);
+  
 
 }
